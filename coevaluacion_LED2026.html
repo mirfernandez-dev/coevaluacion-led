@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TPR Unidad 7 — Prompts y Co-evaluación · LED 2026</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a2533; min-height: 100vh; }
+
+header { background: #1F4E79; color: #fff; padding: 1.5rem 2rem; text-align: center; }
+header h1 { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.2rem; }
+header p  { font-size: 0.88rem; opacity: 0.78; }
+
+.seccion-header {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: #fff; border-radius: 12px 12px 0 0;
+  border: 0.5px solid #d0dae6; border-bottom: none;
+  padding: 1rem 1.75rem;
+  margin-top: 1.5rem;
+}
+.seccion-badge {
+  background: #1F4E79; color: #fff;
+  border-radius: 8px; padding: 0.3rem 0.7rem;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.seccion-titulo { font-size: 1rem; font-weight: 600; color: #1F4E79; }
+.seccion-desc   { font-size: 0.82rem; color: #6b7280; margin-top: 0.1rem; }
+
+.container { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+.card {
+  background: #fff; border-radius: 0 0 12px 12px;
+  border: 0.5px solid #d0dae6; border-top: none;
+  padding: 0 1.75rem 1.5rem; margin-bottom: 0.25rem;
+}
+.card-inner { border-radius: 12px; border: 0.5px solid #d0dae6; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; background: #fff; }
+.card-inner h2 { font-size: 0.95rem; font-weight: 600; color: #1F4E79; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+.step-badge { background: #1F4E79; color: #fff; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+
+label { font-size: 0.875rem; color: #4a5568; display: block; margin-bottom: 0.4rem; }
+.req { color: #c0392b; margin-left: 2px; }
+
+select, input[type=text], textarea {
+  width: 100%; padding: 0.55rem 0.75rem;
+  border: 1px solid #c8d6e5; border-radius: 8px;
+  font-size: 0.9rem; color: #1a2533; background: #fff;
+  appearance: none; transition: border-color 0.15s; font-family: inherit;
+}
+select:focus, input[type=text]:focus, textarea:focus {
+  outline: none; border-color: #1F4E79;
+  box-shadow: 0 0 0 3px rgba(31,78,121,0.12);
+}
+textarea { resize: vertical; line-height: 1.55; }
+
+.field-group { margin-bottom: 1.1rem; }
+.field-hint { font-size: 0.78rem; color: #9ca3af; margin-top: 0.3rem; line-height: 1.4; }
+
+/* Prompt blocks */
+.prompt-block {
+  border: 0.5px solid #d0dae6; border-radius: 10px;
+  padding: 1rem 1.25rem; background: #fafcff; margin-bottom: 0.85rem;
+}
+.prompt-block-titulo {
+  font-size: 0.85rem; font-weight: 600; color: #1F4E79;
+  margin-bottom: 0.6rem; display: flex; align-items: center; gap: 6px;
+}
+.tag-ia {
+  font-size: 0.7rem; background: #e8f0fb; color: #1F4E79;
+  border-radius: 4px; padding: 2px 7px; font-weight: 600;
+}
+.tag-extra {
+  font-size: 0.7rem; background: #f0fdf4; color: #166534;
+  border: 0.5px solid #bbf7d0; border-radius: 4px; padding: 2px 7px; font-weight: 600;
+}
+
+/* Asignación */
+.asignacion-box { display: none; background: #e8f0fb; border: 1px solid #b8cfe8; border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1rem; }
+.asignacion-box.visible { display: block; }
+.box-label { font-size: 0.73rem; color: #3a5a7c; margin-bottom: 0.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.grupo-evaluado-titulo { font-size: 1.05rem; font-weight: 700; color: #1F4E79; margin-bottom: 0.3rem; }
+.miembros-list { font-size: 0.82rem; color: #4a6a8a; line-height: 1.7; margin-bottom: 0.75rem; }
+.links-section { border-top: 1px solid #b8cfe8; padding-top: 0.7rem; }
+.links-label { font-size: 0.73rem; color: #3a5a7c; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.45rem; }
+.link-btn { display: inline-flex; align-items: center; gap: 5px; background: #1F4E79; color: #fff; text-decoration: none; padding: 0.38rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; margin: 0.2rem 0.2rem 0 0; transition: background 0.15s; }
+.link-btn:hover { background: #163d5f; }
+.link-btn svg { width: 12px; height: 12px; fill: none; stroke: #fff; stroke-width: 2; }
+
+.warning-box { display: none; background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1rem; font-size: 0.875rem; color: #856404; }
+.warning-box.visible { display: block; }
+
+/* Criterios */
+.criterio { border: 0.5px solid #d0dae6; border-radius: 10px; padding: 1rem 1.25rem; background: #fafcff; margin-bottom: 0.85rem; }
+.criterio-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.7rem; }
+.criterio-titulo { font-weight: 600; font-size: 0.92rem; color: #1a2533; }
+.criterio-desc { font-size: 0.8rem; color: #6b7280; margin-top: 0.2rem; line-height: 1.4; }
+.puntaje-display { font-size: 1.35rem; font-weight: 700; color: #1F4E79; min-width: 3rem; text-align: right; white-space: nowrap; }
+.puntaje-max { font-size: 0.7rem; color: #9ca3af; text-align: right; }
+
+.opciones-puntaje { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 0.5rem; }
+.pts-btn { background: none; border: 1.5px solid #c8d6e5; border-radius: 7px; padding: 0.35rem 0.7rem; font-size: 0.82rem; cursor: pointer; transition: all 0.12s; color: #6b7280; font-weight: 500; }
+.pts-btn:hover { border-color: #1F4E79; color: #1F4E79; background: #e8f0fb; }
+.pts-btn.selected { background: #1F4E79; color: #fff; border-color: #1F4E79; }
+.pts-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: #9ca3af; margin-top: 0.3rem; }
+
+/* Total */
+.total-card { background: #1F4E79; color: #fff; border-radius: 12px; padding: 1.1rem 1.75rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+.total-label { font-size: 0.88rem; opacity: 0.85; }
+.total-valor { font-size: 2rem; font-weight: 700; }
+.total-max { font-size: 0.75rem; opacity: 0.6; }
+
+/* Avance entre secciones */
+.btn-siguiente { width: 100%; padding: 0.8rem; background: #1F4E79; color: #fff; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.15s; margin-top: 0.5rem; }
+.btn-siguiente:hover { background: #163d5f; }
+.btn-siguiente:disabled { background: #9ca3af; cursor: not-allowed; }
+
+.btn-submit { width: 100%; padding: 0.85rem; background: #1F4E79; color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.15s; letter-spacing: 0.02em; }
+.btn-submit:hover { background: #163d5f; }
+.btn-submit:disabled { background: #9ca3af; cursor: not-allowed; }
+
+/* Indicador de progreso */
+.progreso { display: flex; gap: 8px; justify-content: center; padding: 1rem 0 0.5rem; }
+.prog-paso { width: 32px; height: 5px; border-radius: 3px; background: #d0dae6; transition: background 0.3s; }
+.prog-paso.activo { background: #1F4E79; }
+.prog-paso.completo { background: #2e7d32; }
+
+/* Success */
+.success-panel { display: none; text-align: center; padding: 2.5rem 1.5rem; background: #fff; border-radius: 12px; border: 0.5px solid #d0dae6; margin-top: 1.5rem; }
+.success-panel.visible { display: block; }
+.success-icon { font-size: 3rem; margin-bottom: 1rem; }
+.success-panel h2 { color: #1F4E79; margin-bottom: 0.5rem; }
+.success-panel p { color: #6b7280; font-size: 0.9rem; line-height: 1.6; }
+.resumen-datos { background: #f0f4f8; border-radius: 8px; padding: 0.75rem 1rem; margin-top: 1rem; font-size: 0.82rem; color: #4a5568; text-align: left; line-height: 2; }
+
+.hidden { display: none; }
+.divider { border: none; border-top: 0.5px solid #e5eaf0; margin: 1.25rem 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>TP Relaciones de Recurrencia — Unidad 7</h1>
+  <p>Lógica y Estructuras Discretas · UTN FRRe · 2026</p>
+</header>
+
+<div class="container">
+
+<!-- Indicador de progreso -->
+<div class="progreso">
+  <div class="prog-paso activo" id="prog1"></div>
+  <div class="prog-paso" id="prog2"></div>
+  <div class="prog-paso" id="prog3"></div>
+</div>
+
+<div id="panelFormulario">
+
+  <!-- ══════════════════════════════════════════
+       SECCIÓN A — REGISTRO DE PROMPTS DE IA
+  ══════════════════════════════════════════ -->
+  <div id="seccionA">
+
+    <div class="seccion-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="seccion-badge">SECCIÓN A</span>
+          <span class="seccion-titulo">Registro de prompts de IA</span>
+        </div>
+        <div class="seccion-desc">Completá esta sección con los prompts que usó <strong>tu grupo</strong> para elaborar el trabajo.</div>
+      </div>
+    </div>
+
+    <div class="card">
+
+      <!-- Identificación -->
+      <div class="card-inner" style="border-radius:12px;margin-top:1.5rem;">
+        <h2><span class="step-badge">1</span> Tu grupo</h2>
+        <div class="field-group">
+          <label for="selComisionA">Comisión <span class="req">*</span></label>
+          <select id="selComisionA" onchange="onComisionAChange()">
+            <option value="">— Seleccioná tu comisión —</option>
+            <option value="A">Comisión A</option>
+            <option value="B">Comisión B</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="selGrupoA">Número de grupo <span class="req">*</span></label>
+          <select id="selGrupoA" disabled onchange="checkSeccionA()">
+            <option value="">— Primero seleccioná la comisión —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Prompts requeridos por consigna -->
+      <div class="card-inner">
+        <h2><span class="step-badge">2</span> Prompts requeridos por la consigna</h2>
+
+        <div class="prompt-block">
+          <div class="prompt-block-titulo">
+            Logo del equipo <span class="tag-ia">Gemini</span>
+          </div>
+          <div class="field-group">
+            <label for="promptLogo">Prompt utilizado para generar el logo <span class="req">*</span></label>
+            <textarea id="promptLogo" rows="3" placeholder='Ej.: "Creá un logo para un equipo universitario llamado... que representa..."' oninput="checkSeccionA()"></textarea>
+          </div>
+        </div>
+
+        <div class="prompt-block">
+          <div class="prompt-block-titulo">
+            Caricaturas de los integrantes <span class="tag-ia">ChatGPT</span>
+          </div>
+          <p style="font-size:0.82rem;color:#6b7280;margin-bottom:0.75rem;">Registrá el prompt base que usaron (puede ser el mismo para todos los integrantes).</p>
+          <div class="field-group">
+            <label for="promptCaricatura">Prompt utilizado para las caricaturas <span class="req">*</span></label>
+            <textarea id="promptCaricatura" rows="3" placeholder='Ej.: "Generá una caricatura de estilo cartoon de una persona que estudia en UTN con..." ' oninput="checkSeccionA()"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompts adicionales -->
+      <div class="card-inner">
+        <h2><span class="step-badge">3</span> Prompts adicionales (opcional)</h2>
+        <p style="font-size:0.83rem;color:#6b7280;margin-bottom:1rem;">Si usaron IA para otras partes del trabajo (buscar ejemplos, redactar texto, generar imágenes extra, etc.), registralo acá.</p>
+
+        <div id="promptsExtra"></div>
+
+        <button type="button" onclick="agregarPromptExtra()" style="background:none;border:1.5px dashed #c8d6e5;border-radius:8px;padding:0.5rem 1rem;font-size:0.85rem;color:#6b7280;cursor:pointer;width:100%;margin-top:0.25rem;transition:all 0.15s;" onmouseover="this.style.borderColor='#1F4E79';this.style.color='#1F4E79';" onmouseout="this.style.borderColor='#c8d6e5';this.style.color='#6b7280';">
+          + Agregar otro prompt
+        </button>
+      </div>
+
+      <button class="btn-siguiente" id="btnSiguienteA" onclick="irASeccionB()" disabled>
+        Continuar a la co-evaluación →
+      </button>
+
+    </div>
+  </div><!-- /seccionA -->
+
+
+  <!-- ══════════════════════════════════════════
+       SECCIÓN B — CO-EVALUACIÓN
+  ══════════════════════════════════════════ -->
+  <div id="seccionB" class="hidden">
+
+    <div class="seccion-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="seccion-badge">SECCIÓN B</span>
+          <span class="seccion-titulo">Co-evaluación del grupo asignado</span>
+        </div>
+        <div class="seccion-desc">Evaluá el trabajo del grupo que te fue asignado según los criterios de la consigna.</div>
+      </div>
+    </div>
+
+    <div class="card">
+
+      <!-- Grupo asignado -->
+      <div class="card-inner" style="margin-top:1.5rem;">
+        <h2><span class="step-badge">4</span> Grupo a evaluar</h2>
+
+        <div class="asignacion-box visible" id="asignacionBox">
+          <div class="box-label">Grupo asignado para co-evaluar</div>
+          <div class="grupo-evaluado-titulo" id="grupoEvaluadoLabel"></div>
+          <div class="miembros-list" id="miembrosEvaluado"></div>
+          <div class="links-section">
+            <div class="links-label">Accedé al trabajo</div>
+            <div id="linksBtns"></div>
+          </div>
+        </div>
+
+        <div class="warning-box" id="warningBox">
+          ⚠️ Tu grupo no entregó el TP, por lo que no participa en la co-evaluación.
+        </div>
+      </div>
+
+      <!-- Criterios -->
+      <div class="card-inner" id="cardCriterios">
+        <h2><span class="step-badge">5</span> Evaluación</h2>
+        <p style="font-size:0.84rem;color:#6b7280;margin-bottom:1.25rem;">Seleccioná el puntaje para cada criterio. Los tres son obligatorios.</p>
+
+        <!-- Criterio 1: Calidad visual -->
+        <div class="criterio">
+          <div class="criterio-header">
+            <div>
+              <div class="criterio-titulo">Calidad de la presentación visual</div>
+              <div class="criterio-desc">Diseño de diapositivas, claridad visual, uso del logo, caricaturas y recursos gráficos.</div>
+            </div>
+            <div>
+              <div class="puntaje-display" id="val1">—</div>
+              <div class="puntaje-max">/ 6 pts</div>
+            </div>
+          </div>
+          <div class="opciones-puntaje" id="pts1"></div>
+          <div class="pts-labels"><span>0 — no presentada</span><span>2 — básica</span><span>4 — digital correcta</span><span>6 — excelente</span></div>
+        </div>
+
+        <!-- Criterio 2: Estructura -->
+        <div class="criterio">
+          <div class="criterio-header">
+            <div>
+              <div class="criterio-titulo">Cumplimiento de la estructura</div>
+              <div class="criterio-desc">Presencia y orden de las 8 diapositivas requeridas con los contenidos correspondientes.</div>
+            </div>
+            <div>
+              <div class="puntaje-display" id="val2">—</div>
+              <div class="puntaje-max">/ 6 pts</div>
+            </div>
+          </div>
+          <div class="opciones-puntaje" id="pts2"></div>
+          <div class="pts-labels"><span>0 — no cumple</span><span>2 — cumple poco</span><span>4 — cumple mayormente</span><span>6 — cumple todo</span></div>
+        </div>
+
+        <!-- Criterio 3: Contenido matemático -->
+        <div class="criterio">
+          <div class="criterio-header">
+            <div>
+              <div class="criterio-titulo">Desarrollo del contenido matemático</div>
+              <div class="criterio-desc">Corrección y profundidad de los conceptos de recurrencia, ejemplos y ejercicio resuelto.</div>
+            </div>
+            <div>
+              <div class="puntaje-display" id="val3">—</div>
+              <div class="puntaje-max">/ 8 pts</div>
+            </div>
+          </div>
+          <div class="opciones-puntaje" id="pts3"></div>
+          <div class="pts-labels"><span>0 — ninguna</span><span>2 — una consigna</span><span>4 — algunas</span><span>6 — casi todas</span><span>8 — todas</span></div>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="total-card" id="totalCard">
+        <div>
+          <div class="total-label">Puntaje total</div>
+          <div class="total-max">sobre 20 puntos</div>
+        </div>
+        <div class="total-valor" id="totalValor">0</div>
+      </div>
+
+      <!-- Comentario obligatorio -->
+      <div class="card-inner">
+        <h2><span class="step-badge">6</span> Comentario justificativo <span class="req">*</span></h2>
+        <p style="font-size:0.83rem;color:#6b7280;margin-bottom:0.75rem;">Obligatorio. Sin comentario la evaluación no es válida. Explicá brevemente los puntajes asignados.</p>
+        <textarea id="comentarios" rows="4" placeholder="Ej.: La presentación tiene buen diseño visual y el logo está bien logrado. La estructura está completa aunque la diapositiva de conclusión es breve. El ejercicio resuelto es correcto pero le falta el desarrollo del caso base..." oninput="checkSeccionB()"></textarea>
+        <div class="field-hint">Mínimo 20 caracteres.</div>
+      </div>
+
+      <button class="btn-submit" id="btnEnviar" onclick="enviar()" disabled>
+        Completá todos los campos para enviar
+      </button>
+
+    </div>
+  </div><!-- /seccionB -->
+
+</div><!-- /panelFormulario -->
+
+<!-- Panel de éxito -->
+<div class="success-panel" id="successPanel">
+  <div class="success-icon">✅</div>
+  <h2>¡Formulario enviado!</h2>
+  <p>Tus prompts y la co-evaluación fueron registrados correctamente.</p>
+  <div class="resumen-datos" id="resumenDatos"></div>
+  <p style="margin-top:1.25rem;font-size:0.8rem;color:#9ca3af;">Podés cerrar esta ventana o volver al aula virtual.</p>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const ASIGNACIONES = {
+  A: {"1":"4","2":"25","4":"23","5":"22","6":"10","7":"13","9":"12","10":"6","12":"9","13":"7","15":"17","16":"19","17":"15","19":"16","20":"24","21":"6","22":"5","23":"4","24":"20","25":"2"},
+  B: {"1":"3","2":"13","3":"1","5":"3","7":"15","8":"19","9":"12","10":"22","11":"16","12":"9","13":"2","15":"7","16":"11","17":"20","18":"25","19":"8","20":"17","21":"17","22":"10","25":"18"}
+};
+const NO_ENTREGAN = { A: ["26"], B: ["4","6","14","23","24"] };
+const MIEMBROS = {
+  A: {
+    "1":["Tobías Nahuel Ebel Gonzalez","Lucio Joaquín Varela"],
+    "2":["Octavio Agustín Brittez","Franco Agustín Gonzalez Vallejos","Aisar Manuel Hernández Kairuz","Morena Agostina Pavón"],
+    "4":["Brian Kalbermatter","Ciro Alejandro Villalba","Andrés Lisandro Zapata"],
+    "5":["Tiago Benitez Gomez","Joaquín Daniel Centurión","Lautaro Del Yesso","Carlos Joaquín Falcón","Angel Esteban Pelozo"],
+    "6":["Antonio Ramón Alfonso Báez","Valentina Magali Alvira Coseres","Santiago Agustin Martinez","Sebastián Francisco Segovia"],
+    "7":["Marcelo Ariel Almeida Diaz","Leonel Luis Barrios","Joaquin Alejo Bertran Parodi","Carlo Franchesco Caroprese","Lautaro Daniel Echenique"],
+    "9":["Lara Estefanía Caballero","Constanza López González","Jennifer Lucia Medina","Belinda Vallejos","Camila Selena Vicencio"],
+    "10":["Avril Camnasio","Ibel Eugenia Muñoa Gimenez","Nahir Helena Muzzupappa","Nelson Facundo Otero"],
+    "12":["Andrés Rocco Frettis Irazusta","Thiago Lautaro Mendez","Gabriel Oscar Mónaca","Juan Sebastián Noguera Vega","Gerónimo Palacios Mignone"],
+    "13":["Anna Paula Genez","Liz González Sánchez","Lucas Ezequiel Haro Nesrala","Evelyn Anabella López","Maria Paula Santillán"],
+    "15":["Facundo Ignacio Borges Nogueira","Bladimir Kolodzie","Vanesa Rocío Pereyra Aponte","Kevin Nahuel Retamozo","Xiomara Alessandra Ribeiro"],
+    "16":["Lucas Agustin Cañete","Tobias Llane","Constantino Ruel Mendoza","Yamil Alí Nasir","Juan Cruz Romero Behr"],
+    "17":["Facundo Elena Bennasar","Tiago Ezequiel Pertile Fogar","Lucas Mariano Salas Maidana","Franco Sanguina","Ignacio Ezequiel Sanguina"],
+    "19":["Mario Alejandro Coffa","Santiago Giordano Chaine","Jesus Miranda Arce","Matías Exequiel Negretti","Victor Antonio Veron"],
+    "20":["Pedro Nahuel Aceval","Leandro Julián Acuña","Facundo Fernández","Ramiro Emanuel Romero","Jesús Nazareno Velarde"],
+    "21":["Santiago Joaquin Acevedo Delgado","Walter David Benitez","Santiago Bruno Contrera","Santiago Daniel Dabski"],
+    "22":["Valentina Milagros Alfonso Abatte","Valentina Bejarano Pozzer","Valentina Delbon","Julieta Martin","Bianca Lucianna Mecozzi"],
+    "23":["Elías Alegre Prieto","Ryan Ezequiel Pelozo","Ulises Iván Pereyra Fernández"],
+    "24":["Mateo Montenegro","Fiorella Belén Müller Bolenberg","Mía Sosa","Joaquin Patricio Sotelo","Bautista Benjamin Sussoni"],
+    "25":["Tomás Ezequiel López","Tiziano Daniel Maza","Jerónimo Miranda","Genaro Joaquin Roa Pertile"],
+    "26":["María Victoria Cerrutti","Jessenia Belén Gomez Alegre"]
+  },
+  B: {
+    "1":["Enzo Jose Antonio Campagnola","Lautaro Elian Herrera","Augusto Tomás Rodríguez","Bruno Elian Salguero","Guillermo Dylan Torrielli"],
+    "2":["Belén Victoria Ayala Likoff","Catalina Soledad Castillo","Cesar Luis Dirie","Agostina Madelein Frutos","Erika Ludmila Granich"],
+    "3":["Gonzalo Valentin Aguilar Ayala","Juan Pablo Almirón Romero","Darío Nicolás Godoy Pozzer","Hernan Lautaro Mierez","Octavio Nuñez"],
+    "4":["Ciro Alejandro Villalba"],
+    "5":["Tomas Javier Bastiani","Jorge Santiago Gimenez","Piero Francisco Kalbermatten","Facundo Adrian Morel","Lautaro Joaquin Sandoval Gonzalez"],
+    "6":["William Lautaro Morienega"],
+    "7":["Facundo Acuña","Juan Cruz Singh Ressia","Drago Valdez Picech","Facundo Nahuel Zapatero"],
+    "8":["Amadeo Agustin Benitez","Agustín Amilcar Centurión","Ezequiel Fernández","Tomas Ezequiel Viera Gonzalez"],
+    "9":["Guillermo Nicolás Díaz Pavicich","Lucio Angel Galarza","Joaquin Gonzalez","Ángel Micael Morales Sánchez","Iván Emanuel Saucedo"],
+    "10":["Lara Ailin Canteros","Ithan Xavier Echavarria","Rubén Adán Ledesma","Delicia Tatiana Quiñones Ibañez","Isaias Eleazar Silva"],
+    "11":["Santiago Mac Donald","Leandro David Meza","Luciano Gabriel Pereyra Brest","Maximo Alejandro Terraza","Clivio Nicolás Vera Ortiz"],
+    "12":["Luciano Medina Saavedra","Daniel Santiago Retamozo Nuñez","Francisco Emanuel Ríos","Victoria Rolón","Santiago Solari"],
+    "13":["Ruben Bautista Alegre Sanchez","Maximiliano Uriel Aranda Silvero","Camila Beber Gehan","Luciana Noeli Marao Duarte","Yaritza Pavich"],
+    "14":["Alam Massad"],
+    "15":["Facundo Nicolas Bobeda","Santino Encinas","Pablo Kuray","Tobias Maximiliano Vilaqui"],
+    "16":["Gael Cuevas Corsi","Facundo Nicolás De los Reyes Vidal","Franco Daniel Martínez","Julian Esteban Masat","Tiago Daniel Wlozovitz Barrios"],
+    "17":["Luciana Magali Gómez","Máximo Horacio Maidana","Valentina Giuliana Pértile"],
+    "18":["Santiago Emmanuel Enriquez","Brian Leonel Espindola","Romeli Morales","Uriel Vallejos","Mia Evelyn Zarate"],
+    "19":["Ramiro Ivan Brailovsky Chas","Brian Kalbermatter","Sofía Pilar Kohler","Victoria Sanz"],
+    "20":["Milena Areli Sosa López","Ana Paula Verón","Pilar Verón Romero"],
+    "21":["Jeremías Insaurralde"],
+    "22":["Nicolás Arzuaga","Juan Agustín Centurión","Nahuel Massa","Marcos Ariel Romero","Agostino Nicolas Sassone"],
+    "23":["Thiago Jeremías Obregón"],
+    "24":["Yanina Maribel Gutierrez"],
+    "25":["Fabricio Esteban Chezzi","Agustin Andres Leguizamon Sena","Nahiara Lujan Morales","Lourdes Antonella Nuñez","Ignacio Agustín Puyol"]
+  }
+};
+const LINKS = {
+  A: {
+    "1":["https://canva.link/ucnrcfcynpo2g1p"],
+    "2":["https://canva.link/9fmv655srsfp7pw"],
+    "4":["https://canva.link/zld798cd77o9f25"],
+    "5":["https://canva.link/lcbx6vln67iik09"],
+    "6":["https://canva.link/bxcgys3j5tf4w1n","https://canva.link/mprk34j4i35eg0f"],
+    "7":["https://canva.link/4n8aptfy7mopgje"],
+    "9":["https://canva.link/ph05421lrrggcy5"],
+    "10":["https://youtube.com/watch?v=JOjcfs-Wd-s&feature=shared","https://canva.link/8tw1lq5won4ddng"],
+    "12":["https://canva.link/jw5uvrhf077odwu","https://drive.google.com/drive/folders/1l2ewTM_Aa4mk5N-3rQe9WFPeJoBkJMJt?usp=sharing"],
+    "13":["https://youtu.be/zMI6MFLJV2E?feature=shared"],
+    "15":["https://canva.link/dr540071rkq7ayq"],
+    "16":["https://www.canva.com/design/DAHM37MHZvI/SUAB-I6R0BHPRGtyLahmbA/view?utm_content=DAHM37MHZvI&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h08aa4cbb89"],
+    "17":["https://canva.link/cyk48fpoafwr4au","https://youtu.be/Ol88ubioys4?si=KjkJz-sKmep5-YVo"],
+    "19":["https://canva.link/01ynlewson4uru1"],
+    "20":["https://youtu.be/Ir9wdRB1Z88","https://www.canva.com/design/DAHM-tYvR90/CAI0ugo--eRdDbTkPIpICQ/edit?ui=e30"],
+    "21":["https://canva.link/1y23kvf7ow3qn2n"],
+    "22":["https://canva.link/eapumxm0lx3cx2o","https://canva.link/njuowfu6fgpkulu"],
+    "23":["https://canva.link/stl0xseallqywq5"],
+    "24":["https://canva.link/odu6barxzaf88jm"],
+    "25":["https://canva.link/78b6nx2fojik4kx"]
+  },
+  B: {
+    "1":["https://canva.link/we0is3h9zxmss1p"],
+    "2":["https://youtu.be/C8QGQFbERfk"],
+    "3":["https://canva.link/0uycrml1aj7xq5f"],
+    "5":["https://canva.link/mj6273mm48u1npf"],
+    "7":["https://canva.link/3knkr5de1wmz32a"],
+    "8":["https://canva.link/1w6azq71i40bvcm"],
+    "9":["https://canva.link/fkpzoaefldir2pa"],
+    "10":["https://canva.link/384ndx1tdlx7vja"],
+    "11":["https://drive.google.com/file/d/1REmvb2_CmrTBTxnxG-FhZkGpI-PJ1KGM/view?usp=sharing"],
+    "12":["https://canva.link/q54sjfp9vunoz1q"],
+    "13":["https://canva.link/neio6jwc4m1v8aq"],
+    "15":["https://www.canva.com/design/DAHM9GeExao/FnanZF-ihrzgrHdyzUpUYQ/view?utm_content=DAHM9GeExao&utm_campaign=designshare&utm_medium=link&utm_source=recording_view"],
+    "16":["https://youtu.be/PxnEVXjqRCQ?si=dG2ZslcEoh4Iliw6"],
+    "17":["https://canva.link/kt6o5rq6y8eekvm"],
+    "18":["https://canva.link/qwhbtge3zhgjvwq"],
+    "19":["https://canva.link/u3he456t48dbxln"],
+    "20":["https://canva.link/cn77seikcfo80fv"],
+    "21":["https://canva.link/8mzwo4ba84d2ssb"],
+    "22":["https://canva.link/7s2q5vsq8f8bcqx"],
+    "25":["https://canva.link/636tb7x4i6ao6a8"]
+  }
+};
+const GRUPOS_COM = {
+  A: ["1","2","4","5","6","7","9","10","12","13","15","16","17","19","20","21","22","23","24","25","26"],
+  B: ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25"]
+};
+const PUNTAJES = { 1:[0,2,4,6], 2:[0,2,4,6], 3:[0,2,4,6,8] };
+
+let scores = [null, null, null];
+let comision = '', grupo = '';
+let promptsExtraCount = 0;
+
+function linkLabel(url) {
+  if (url.includes('youtu')) return 'Ver en YouTube';
+  if (url.includes('canva')) return 'Ver en Canva';
+  if (url.includes('drive.google')) return 'Ver en Drive';
+  return 'Abrir enlace';
+}
+function extIcon() {
+  return `<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+}
+
+function buildBotones() {
+  [1,2,3].forEach(idx => {
+    const c = document.getElementById('pts'+idx);
+    c.innerHTML = '';
+    PUNTAJES[idx].forEach(p => {
+      const b = document.createElement('button');
+      b.className = 'pts-btn';
+      b.textContent = p + ' pts';
+      b.onclick = () => setPuntaje(idx-1, p);
+      c.appendChild(b);
+    });
+  });
+}
+
+function setPuntaje(idx, val) {
+  scores[idx] = val;
+  document.getElementById('val'+(idx+1)).textContent = val;
+  document.getElementById('pts'+(idx+1)).querySelectorAll('.pts-btn')
+    .forEach(b => b.classList.toggle('selected', parseInt(b.textContent) === val));
+  document.getElementById('totalValor').textContent = scores.reduce((a,b) => a + (b||0), 0);
+  checkSeccionB();
+}
+
+// ── Sección A ──
+function onComisionAChange() {
+  comision = document.getElementById('selComisionA').value;
+  const sel = document.getElementById('selGrupoA');
+  sel.innerHTML = '<option value="">— Seleccioná tu grupo —</option>';
+  sel.disabled = !comision;
+  if (comision) {
+    GRUPOS_COM[comision].forEach(g => {
+      const o = document.createElement('option');
+      o.value = g; o.textContent = 'Grupo ' + g; sel.appendChild(o);
+    });
+  }
+  grupo = '';
+  checkSeccionA();
+}
+
+function checkSeccionA() {
+  comision = document.getElementById('selComisionA').value;
+  grupo = document.getElementById('selGrupoA').value;
+  const logo = document.getElementById('promptLogo').value.trim();
+  const caric = document.getElementById('promptCaricatura').value.trim();
+  const ok = comision && grupo && logo.length > 0 && caric.length > 0;
+  document.getElementById('btnSiguienteA').disabled = !ok;
+}
+
+function agregarPromptExtra() {
+  promptsExtraCount++;
+  const id = 'extra_' + promptsExtraCount;
+  const div = document.createElement('div');
+  div.className = 'prompt-block';
+  div.id = 'bloque_' + id;
+  div.innerHTML = `
+    <div class="prompt-block-titulo" style="justify-content:space-between;">
+      <span>Prompt adicional ${promptsExtraCount} <span class="tag-extra">Extra</span></span>
+      <button type="button" onclick="document.getElementById('bloque_${id}').remove()" style="background:none;border:none;color:#9ca3af;cursor:pointer;font-size:1.1rem;line-height:1;">×</button>
+    </div>
+    <div class="field-group">
+      <label>Herramienta de IA utilizada</label>
+      <input type="text" id="herr_${id}" placeholder="Ej.: ChatGPT, Gemini, Copilot, DALL·E...">
+    </div>
+    <div class="field-group">
+      <label>Prompt utilizado</label>
+      <textarea id="txt_${id}" rows="3" placeholder="Escribí el prompt que usaron..."></textarea>
+    </div>
+    <div class="field-group">
+      <label>¿Para qué parte del trabajo?</label>
+      <input type="text" id="uso_${id}" placeholder="Ej.: para buscar ejemplos de Fibonacci, para redactar la conclusión...">
+    </div>
+  `;
+  document.getElementById('promptsExtra').appendChild(div);
+}
+
+function irASeccionB() {
+  grupo = document.getElementById('selGrupoA').value;
+  comision = document.getElementById('selComisionA').value;
+
+  document.getElementById('seccionA').classList.add('hidden');
+  document.getElementById('seccionB').classList.remove('hidden');
+  document.getElementById('prog1').classList.remove('activo');
+  document.getElementById('prog1').classList.add('completo');
+  document.getElementById('prog2').classList.add('activo');
+  window.scrollTo(0,0);
+
+  // Mostrar asignación
+  const noEntrega = (NO_ENTREGAN[comision]||[]).includes(grupo);
+  if (noEntrega) {
+    document.getElementById('asignacionBox').style.display = 'none';
+    document.getElementById('warningBox').classList.add('visible');
+    document.getElementById('cardCriterios').style.display = 'none';
+    document.getElementById('totalCard').style.display = 'none';
+    return;
+  }
+
+  const asig = ASIGNACIONES[comision][grupo];
+  document.getElementById('grupoEvaluadoLabel').textContent = 'Grupo ' + asig + ' — Comisión ' + comision;
+  document.getElementById('miembrosEvaluado').textContent = (MIEMBROS[comision][asig]||[]).join(' · ');
+
+  const linksArr = LINKS[comision][asig] || [];
+  const lb = document.getElementById('linksBtns');
+  lb.innerHTML = '';
+  if (!linksArr.length) {
+    lb.innerHTML = '<span style="font-size:0.8rem;color:#9ca3af;">Sin link registrado.</span>';
+  } else {
+    linksArr.forEach((url, i) => {
+      const a = document.createElement('a');
+      a.href = url; a.target = '_blank'; a.className = 'link-btn';
+      a.innerHTML = extIcon() + ' ' + (linksArr.length > 1 ? linkLabel(url) + ' ' + (i+1) : linkLabel(url));
+      lb.appendChild(a);
+    });
+  }
+
+  buildBotones();
+  checkSeccionB();
+}
+
+function checkSeccionB() {
+  const allScored = scores.every(s => s !== null);
+  const comentario = document.getElementById('comentarios').value.trim();
+  const ok = allScored && comentario.length > 0;
+  const btn = document.getElementById('btnEnviar');
+  btn.disabled = !ok;
+  btn.textContent = ok ? 'Enviar formulario completo ✓' : 'Completá todos los campos para enviar';
+}
+
+function recopilarExtras() {
+  const extras = [];
+  for (let i = 1; i <= promptsExtraCount; i++) {
+    const id = 'extra_' + i;
+    const bloque = document.getElementById('bloque_' + id);
+    if (!bloque) continue;
+    const herr = document.getElementById('herr_' + id)?.value.trim() || '';
+    const txt  = document.getElementById('txt_'  + id)?.value.trim() || '';
+    const uso  = document.getElementById('uso_'  + id)?.value.trim() || '';
+    if (txt) extras.push({ herramienta: herr, prompt: txt, uso });
+  }
+  return extras;
+}
+
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwibjpGirqqYkb_e3ny24dMz_YEOsZL2iPiOsKjv1o-_PRH56sXTEsl6ET0c6RO8kOB/exec';
+
+function enviar() {
+  if (scores.some(s => s === null)) return;
+
+  const btn = document.getElementById('btnEnviar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const asig = ASIGNACIONES[comision][grupo];
+  const total = scores.reduce((a,b) => a+(b||0), 0);
+  const comentario = document.getElementById('comentarios').value.trim();
+  const fecha = new Date().toLocaleString('es-AR');
+  const extras = recopilarExtras();
+  const promptLogo = document.getElementById('promptLogo').value.trim();
+  const promptCaricatura = document.getElementById('promptCaricatura').value.trim();
+
+  const payload = {
+    fecha, comision, grupo, promptLogo, promptCaricatura,
+    promptsExtra: extras, grupoEvaluado: asig, scores, total, comentario
+  };
+
+  // Enviamos via iframe para evitar restricciones CORS/CSP de Moodle
+  const ifrm = document.getElementById('submitFrame');
+  const frm  = document.getElementById('hiddenForm');
+  document.getElementById('hiddenData').value = JSON.stringify(payload);
+  frm.action = APPS_SCRIPT_URL;
+  frm.submit();
+  // Mostrar éxito después de un momento
+  setTimeout(() => mostrarExito(asig, total, extras, fecha), 1500);
+}
+
+function mostrarExito(asig, total, extras, fecha) {
+  document.getElementById('panelFormulario').style.display = 'none';
+  document.getElementById('successPanel').classList.add('visible');
+  document.getElementById('prog2').classList.remove('activo');
+  document.getElementById('prog2').classList.add('completo');
+  document.getElementById('prog3').classList.add('activo');
+
+  const extrasHTML = extras.length
+    ? '<br><strong>Prompts adicionales:</strong> ' + extras.map(e => (e.herramienta||'IA') + ' — ' + e.uso).join(', ')
+    : '';
+
+  document.getElementById('resumenDatos').innerHTML =
+    '<strong>Grupo:</strong> Comisión ' + comision + ' — Grupo ' + grupo + '<br>' +
+    '<strong>Prompt logo (Gemini):</strong> registrado ✓<br>' +
+    '<strong>Prompt caricaturas (ChatGPT):</strong> registrado ✓' + extrasHTML + '<br>' +
+    '<strong>Grupo evaluado:</strong> Grupo ' + asig + ' — Comisión ' + comision + '<br>' +
+    '<strong>Visual:</strong> ' + scores[0] + '/6 &nbsp;|&nbsp; <strong>Estructura:</strong> ' + scores[1] + '/6 &nbsp;|&nbsp; <strong>Contenido:</strong> ' + scores[2] + '/8<br>' +
+    '<strong>Total:</strong> ' + total + '/20<br>' +
+    '<strong>Comentario:</strong> registrado ✓<br>' +
+    '<strong>Enviado:</strong> ' + fecha;
+}
+</script>
+
+<!-- iframe oculto para envío sin CORS -->
+<iframe id="submitFrame" name="submitFrame" style="display:none;"></iframe>
+<form id="hiddenForm" method="POST" target="submitFrame" style="display:none;">
+  <input type="hidden" id="hiddenData" name="data" value="">
+</form>
+</body>
+</html>
